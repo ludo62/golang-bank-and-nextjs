@@ -21,3 +21,9 @@ m_down:
 
 sqlc:
 	sqlc generate
+
+test:
+	go test -v -cover ./...
+
+start:
+	CompileDaemon -command="./bank_db

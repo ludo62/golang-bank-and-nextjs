@@ -3,6 +3,7 @@ package db_test
 import (
 	"database/sql"
 	db "github/ludo62/bank_db/db/sqlc"
+	"github/ludo62/bank_db/utils"
 	"log"
 	"os"
 	"testing"
@@ -13,7 +14,12 @@ import (
 var testQuery *db.Queries
 
 func TestMain(m *testing.M) {
-	conn, err := sql.Open("postgres", "postgres://root:secret@localhost:5432/bank_db?sslmode=disable")
+	config, err := utils.LoadConfig("../../")
+	if err != nil {
+		log.Fatal("Impossible de charger la configuration:", err)
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Impossible de se connecter avec la base de données:", err)
 	}

@@ -3,6 +3,7 @@ package db_test
 import (
 	"context"
 	db "github/ludo62/bank_db/db/sqlc"
+	"github/ludo62/bank_db/utils"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	arg := db.CreateUserParams{
-		Email:          "test@exemple.com1",
+		Email:          utils.RandomEmail(),
 		HashedPassword: "secret",
 	}
 	user, err := testQuery.CreateUser(context.Background(), arg)

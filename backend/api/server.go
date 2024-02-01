@@ -21,7 +21,7 @@ func NewServer(envPath string) *Server {
 		panic(fmt.Sprintf("Impossible de charger la configuration: %v", err))
 	}
 
-	conn, err := sql.Open(config.DBDriver, config.DBSource)
+	conn, err := sql.Open(config.DBDriver, config.DBSource_live)
 	if err != nil {
 		panic(fmt.Sprintf("Impossible de se connecter avec la base de données: %v", err))
 	}
@@ -42,6 +42,8 @@ func (s *Server) Start(port int) {
 			"message": "Bienvenue Ludovic",
 		})
 	})
+
+	User{}.router(s)
 
 	s.router.Run(fmt.Sprintf(":%v", port))
 }

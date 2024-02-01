@@ -9,15 +9,19 @@ p_down:
 
 db_up:
 	docker exec -it bank-postgres createdb --username=root --owner=root bank_db
+	docker exec -it bank_postgres_live createdb --username=root --owner=root bank_db
 
 db_down:
 	docker exec -it bank-postgres dropdb --username=root bank_db
+	docker exec -it bank_postgres_live --username=root bank_db
 
 m_up:
 	migrate -path db/migrations -database "postgres://root:secret@localhost:5432/bank_db?sslmode=disable" up
+	migrate -path db/migrations -database "postgres://root:secret@localhost:5433/bank_db?sslmode=disable" up
 
 m_down:
 	migrate -path db/migrations -database "postgres://root:secret@localhost:5432/bank_db?sslmode=disable" down
+	migrate -path db/migrations -database "postgres://root:secret@localhost:5433/bank_db?sslmode=disable" down
 
 sqlc:
 	sqlc generate

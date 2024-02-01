@@ -4,6 +4,7 @@ import (
 	"context"
 	db "github/ludo62/bank_db/db/sqlc"
 	"github/ludo62/bank_db/utils"
+	"log"
 	"testing"
 	"time"
 
@@ -12,9 +13,15 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
+	hashedPassword, err := utils.GenerateHashPassword(utils.RandomString(6))
+
+	if err != nil {
+		log.Fatal("Impossible de générer un mot de passe hashé:", err)
+	}
+
 	arg := db.CreateUserParams{
 		Email:          utils.RandomEmail(),
-		HashedPassword: "secret",
+		HashedPassword: hashedPassword,
 	}
 	user, err := testQuery.CreateUser(context.Background(), arg)
 

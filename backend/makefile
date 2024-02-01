@@ -12,3 +12,9 @@ db_up:
 
 db_down:
 	docker exec -it bank-postgres dropdb --username=root bank_db
+
+m_up:
+	migrate -path db/migrations -database "postgres://root:secret@localhost:5432/bank_db?sslmode=disable" up
+
+m_down:
+	migrate -path db/migrations -database "postgres://root:secret@localhost:5432/bank_db?sslmode=disable" down

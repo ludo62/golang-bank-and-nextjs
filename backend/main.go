@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github/ludo62/bank_db/api"
+)
 
 func main() {
-	fmt.Println("Hello, World!")
+	api.NewServer(3000)
 }

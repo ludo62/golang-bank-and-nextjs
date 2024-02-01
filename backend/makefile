@@ -18,3 +18,6 @@ m_up:
 
 m_down:
 	migrate -path db/migrations -database "postgres://root:secret@localhost:5432/bank_db?sslmode=disable" down
+
+sqlc:
+	sqlc generate

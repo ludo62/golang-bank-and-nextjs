@@ -2,12 +2,12 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	db "github/ludo62/bank_db/db/sqlc"
-	"github/ludo62/bank_db/utils"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
 )
 
 type User struct {
@@ -17,46 +17,14 @@ type User struct {
 func (u User) router(server *Server) {
 	u.server = server
 
-	serverGroup := server.router.Group("/users")
+	serverGroup := server.router.Group("/users", AuthenticatedMiddleware())
 	serverGroup.GET("", u.listUsers)
-	serverGroup.POST("", u.createUser)
+	serverGroup.GET("/me", u.getLoggedInUser)
 }
 
 type UserParams struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
-}
-
-func (u *User) createUser(c *gin.Context) {
-	var user UserParams
-
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	hashedPassword, err := utils.GenerateHashPassword(user.Password)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	arg := db.CreateUserParams{
-		Email:          user.Email,
-		HashedPassword: hashedPassword,
-	}
-
-	newUser, err := u.server.queries.CreateUser(context.Background(), arg)
-	if err != nil {
-		if pgErr, ok := err.(*pq.Error); ok {
-			if pgErr.Code == "23505" {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "L'utilisateur existe déjà"})
-			}
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusCreated, UserResponse{}.toUserResponse(&newUser))
 }
 
 func (u *User) listUsers(c *gin.Context) {
@@ -80,6 +48,33 @@ func (u *User) listUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, newUsers)
+}
+
+func (u *User) getLoggedInUser(c *gin.Context) {
+	value, exist := c.Get("user_id")
+
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Vous n'êtes pas autorisé à accéder à cette ressource"})
+		return
+	}
+
+	userId, ok := value.(int64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "A renconter une erreur"})
+		return
+	}
+
+	user, err := u.server.queries.GetUserByID(context.Background(), userId)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Vous n'êtes pas autorisé à accéder à cette ressource"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{}.toUserResponse(&user))
 }
 
 type UserResponse struct {
